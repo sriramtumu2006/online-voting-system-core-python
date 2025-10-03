@@ -30,23 +30,29 @@ if role == "Voter":
         password = st.text_input("Password", type="password")
         if st.button("Login"):
             voter = VoterService.login(email, password)
-            if voter and isinstance(voter, dict) and "name" in voter:
+            if voter:
                 st.session_state["voter"] = voter
-                st.session_state["voter_action"] = "List Elections"
                 st.success(f"Welcome {voter['name']}!")
                 st.experimental_rerun()
             else:
-                st.error("Invalid credentials or login failed.")
+                st.error("Invalid credentials.")
 
     # ---------- VOTER ACTIONS ----------
     else:
         voter = st.session_state["voter"]
         st.success(f"Logged in as {voter['name']}")
 
+        # Logout button separate from action selectbox
+        if st.button("Logout"):
+            st.session_state["voter"] = None
+            st.session_state["voter_action"] = "List Elections"
+            st.experimental_rerun()
+
+        # Voter action selectbox
         voter_action = st.selectbox(
             "Choose Action",
-            ["List Elections", "Cast Vote", "View Results", "Logout"],
-            index=["List Elections", "Cast Vote", "View Results", "Logout"].index(st.session_state["voter_action"])
+            ["List Elections", "Cast Vote", "View Results"],
+            index=["List Elections", "Cast Vote", "View Results"].index(st.session_state["voter_action"])
         )
         st.session_state["voter_action"] = voter_action
 
@@ -99,14 +105,6 @@ if role == "Voter":
                     st.info("Results will be available only after the election ends.")
             else:
                 st.info("No elections available.")
-
-        # Logout
-        elif voter_action == "Logout":
-            if st.button("Logout"):
-                st.session_state["voter"] = None
-                st.session_state["voter_action"] = "List Elections"
-                st.success("Logged out successfully!")
-                st.experimental_rerun()
 
 # ----------------- ADMIN -----------------
 elif role == "Admin":
