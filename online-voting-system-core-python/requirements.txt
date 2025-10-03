@@ -1,5 +1,0 @@
-streamlit
-supabase
-postgrest-py
-httpx
-python-dotenv
