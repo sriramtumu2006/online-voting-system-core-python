@@ -43,10 +43,11 @@ if role == "Voter":
                     selected_candidate = st.selectbox("Select Candidate", list(candidate_options.keys()))
                     candidate_id = candidate_options[selected_candidate]
                     if st.button("Vote"):
-                        if VoteService.cast_vote(voter['voter_id'], election_id, candidate_id):
-                            st.success("Vote cast successfully!")
+                        success, msg = VoteService.cast_vote(voter['voter_id'], election_id, candidate_id)
+                        if success:
+                            st.success(msg)
                         else:
-                            st.warning("You have already voted in this election.")
+                            st.error(msg)
                 else:
                     st.warning("No candidates available for this election.")
 
@@ -118,3 +119,4 @@ elif role == "Admin":
         if st.button("End Election"):
             AdminService.force_end_election(election_id)
             st.success(f"Election {election_id} ended!")
+
