@@ -26,24 +26,29 @@ if role == "Voter":
 
     # ---------- LOGIN ----------
     if st.session_state["voter"] is None:
-        email = st.text_input("Email")
-        password = st.text_input("Password", type="password")
-        if st.button("Login"):
-            voter = VoterService.login(email, password)
-            if voter:
-                st.session_state["voter"] = voter
-                st.success(f"Welcome {voter['name']}!")
-                st.experimental_rerun()
-            else:
-                st.error("Invalid credentials.")
+        with st.form("login_form"):
+            email = st.text_input("Email")
+            password = st.text_input("Password", type="password")
+            submitted = st.form_submit_button("Login")
+            if submitted:
+                voter = VoterService.login(email, password)
+                if voter:
+                    st.session_state["voter"] = voter
+                    st.success(f"Welcome {voter['name']}!")
+                    st.experimental_rerun()
+                else:
+                    st.error("Invalid credentials.")
 
     # ---------- VOTER ACTIONS ----------
     else:
         voter = st.session_state["voter"]
         st.success(f"Logged in as {voter['name']}")
 
-        voter_action = st.selectbox("Choose Action", ["List Elections", "Cast Vote", "View Results", "Logout"],
-                                    index=["List Elections", "Cast Vote", "View Results", "Logout"].index(st.session_state["voter_action"]))
+        voter_action = st.selectbox(
+            "Choose Action",
+            ["List Elections", "Cast Vote", "View Results", "Logout"],
+            index=["List Elections", "Cast Vote", "View Results", "Logout"].index(st.session_state["voter_action"])
+        )
         st.session_state["voter_action"] = voter_action
 
         # List Elections
@@ -98,10 +103,12 @@ if role == "Voter":
 
         # Logout
         elif voter_action == "Logout":
-            if st.button("Logout"):
-                st.session_state["voter"] = None
-                st.success("Logged out successfully!")
-                st.experimental_rerun()
+            with st.form("logout_form"):
+                submitted = st.form_submit_button("Logout")
+                if submitted:
+                    st.session_state["voter"] = None
+                    st.success("Logged out successfully!")
+                    st.experimental_rerun()
 
 # ----------------- ADMIN -----------------
 elif role == "Admin":
