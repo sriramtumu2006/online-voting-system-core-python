@@ -42,13 +42,6 @@ if role == "Voter":
         voter = st.session_state["voter"]
         st.success(f"Logged in as {voter['name']}")
 
-        # Logout button separate from action selectbox
-        if st.button("Logout"):
-            st.session_state["voter"] = None
-            st.session_state["voter_action"] = "List Elections"
-            st.experimental_rerun()
-
-        # Voter action selectbox
         voter_action = st.selectbox(
             "Choose Action",
             ["List Elections", "Cast Vote", "View Results"],
