@@ -64,7 +64,7 @@ class ElectionDAO:
         supabase = get_supabase()
         response = supabase.table("vote").select("voter_id", count="exact").eq("election_id", election_id).execute()
         return response.count
-    
+    @staticmethod
     def get_election(election_id):
         supabase = get_supabase()
         response = supabase.table("election").select("*").eq("election_id", election_id).execute()
@@ -77,8 +77,10 @@ class ElectionDAO:
             return False
         end_date = datetime.fromisoformat(election["end_date"])
         return datetime.now() > end_date
+    @staticmethod
     def end_election(election_id):
         supabase = get_supabase()
         now = datetime.now().isoformat()
         supabase.table("election").update({"end_date": now, "status": "ended"}).eq("election_id", election_id).execute()
         print(f"Election ID {election_id} has been forcefully ended.")
+
