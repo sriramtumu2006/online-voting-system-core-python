@@ -10,103 +10,116 @@ from src.services.report_service import ReportService
 
 st.title("🌐 Online Voting System")
 
+# --- Sidebar for role selection ---
 role = st.sidebar.selectbox("Select Role", ["Voter", "Admin"])
 
 # ----------------- VOTER -----------------
 if role == "Voter":
     st.header("Voter Portal")
 
-    action = st.selectbox("Choose Action", ["Login", "Back"], key="voter_action")
-    if action == "Login":
-        email = st.text_input("Email", key="voter_email")
-        password = st.text_input("Password", type="password", key="voter_password")
+    # Initialize session state for voter
+    if 'voter' not in st.session_state:
+        st.session_state['voter'] = None
+
+    # Login form
+    if st.session_state['voter'] is None:
+        email = st.text_input("Email")
+        password = st.text_input("Password", type="password")
         if st.button("Login", key="voter_login"):
             voter = VoterService.login(email, password)
             if voter:
+                st.session_state['voter'] = voter
                 st.success(f"Welcome {voter['name']}!")
-
-                voter_action = st.selectbox(
-                    "Choose Action", 
-                    ["List Elections", "Cast Vote", "View Results"], 
-                    key="voter_action2"
-                )
-
-                # List Elections
-                if voter_action == "List Elections":
-                    elections = ElectionService.list_elections()
-                    if elections:
-                        st.subheader("Available Elections")
-                        for e in elections:
-                            st.write(f"ID: {e['election_id']} | {e['title']} | Status: {e.get('status', 'N/A')}")
-                    else:
-                        st.info("No elections available.")
-
-                # Cast Vote
-                elif voter_action == "Cast Vote":
-                    elections = ElectionService.list_elections()
-                    if elections:
-                        election_options = {f"{e['title']} (ID:{e['election_id']})": e['election_id'] for e in elections}
-                        selected = st.selectbox("Select Election", list(election_options.keys()), key="voter_election")
-                        election_id = election_options[selected]
-
-                        candidates = CandidateService.list_candidates(election_id)
-                        if candidates:
-                            candidate_options = {f"{c['name']} ({c.get('party','Independent')})": c['candidate_id'] for c in candidates}
-                            selected_candidate = st.selectbox("Select Candidate", list(candidate_options.keys()), key="voter_candidate")
-                            candidate_id = candidate_options[selected_candidate]
-
-                            if st.button("Vote", key="vote_button"):
-                                VoteService.cast_vote(voter['voter_id'], election_id, candidate_id)
-                                st.success("Vote cast successfully!")
-                        else:
-                            st.warning("No candidates available for this election.")
-                    else:
-                        st.info("No elections available.")
-
-                # View Results
-                elif voter_action == "View Results":
-                    elections = ElectionService.list_elections()
-                    if elections:
-                        election_options = {f"{e['title']} (ID:{e['election_id']})": e['election_id'] for e in elections}
-                        selected = st.selectbox("Select Election", list(election_options.keys()), key="voter_result_election")
-                        election_id = election_options[selected]
-
-                        st.subheader("Results")
-                        results = ReportService.view_results_for_voter(election_id)
-                        if results:
-                            for r in results:
-                                st.write(f"{r['candidate_name']} - {r['votes']} votes")
-                        else:
-                            st.info("Results will be available after the election ends.")
-                    else:
-                        st.info("No elections available.")
             else:
                 st.error("Invalid credentials.")
+
+    # Logged in voter
+    voter = st.session_state['voter']
+    if voter:
+        st.subheader(f"Welcome {voter['name']}!")
+        voter_action = st.selectbox(
+            "Choose Action",
+            ["List Elections", "Cast Vote", "View Results", "Logout"],
+            key="voter_action"
+        )
+
+        # List Elections
+        if voter_action == "List Elections":
+            elections = ElectionService.list_elections()
+            if elections:
+                st.subheader("Available Elections")
+                for e in elections:
+                    st.write(f"ID: {e['election_id']} | {e['title']} | Status: {e.get('status', 'N/A')}")
+            else:
+                st.info("No elections available.")
+
+        # Cast Vote
+        elif voter_action == "Cast Vote":
+            elections = ElectionService.list_elections()
+            if elections:
+                election_options = {f"{e['title']} (ID:{e['election_id']})": e['election_id'] for e in elections}
+                selected = st.selectbox("Select Election", list(election_options.keys()), key="vote_election")
+                election_id = election_options[selected]
+
+                candidates = CandidateService.list_candidates(election_id)
+                if candidates:
+                    candidate_options = {f"{c['name']} ({c.get('party','Independent')})": c['candidate_id'] for c in candidates}
+                    selected_candidate = st.selectbox("Select Candidate", list(candidate_options.keys()), key="vote_candidate")
+                    candidate_id = candidate_options[selected_candidate]
+
+                    if st.button("Vote", key="vote_button"):
+                        VoteService.cast_vote(voter['voter_id'], election_id, candidate_id)
+                        st.success("Vote cast successfully!")
+                else:
+                    st.warning("No candidates available for this election.")
+            else:
+                st.info("No elections available.")
+
+        # View Results
+        elif voter_action == "View Results":
+            elections = ElectionService.list_elections()
+            if elections:
+                election_options = {f"{e['title']} (ID:{e['election_id']})": e['election_id'] for e in elections}
+                selected = st.selectbox("Select Election", list(election_options.keys()), key="results_election")
+                election_id = election_options[selected]
+
+                st.subheader("Results")
+                results = ReportService.view_results_for_voter(election_id)
+                if results:
+                    for r in results:
+                        st.write(f"{r['candidate_name']} - {r['votes']} votes")
+                else:
+                    st.info("Results not available yet or no votes cast.")
+            else:
+                st.info("No elections available.")
+
+        # Logout
+        elif voter_action == "Logout":
+            st.session_state['voter'] = None
+            st.experimental_rerun()
 
 # ----------------- ADMIN -----------------
 elif role == "Admin":
     st.header("Admin Portal")
-
     action = st.selectbox(
         "Choose Action",
-        ["Register Voter", "Create Election", "Add Candidate", "View Reports", "Force End Election"],
-        key="admin_action"
+        ["Register Voter", "Create Election", "Add Candidate", "View Reports", "Force End Election"]
     )
 
     if action == "Register Voter":
-        name = st.text_input("Voter Name", key="admin_voter_name")
-        email = st.text_input("Voter Email", key="admin_voter_email")
-        password = st.text_input("Voter Password", type="password", key="admin_voter_password")
-        if st.button("Register Voter", key="admin_register_voter"):
+        name = st.text_input("Voter Name")
+        email = st.text_input("Voter Email")
+        password = st.text_input("Voter Password", type="password")
+        if st.button("Register Voter"):
             AdminService.register_voter(name, email, password)
             st.success(f"Voter {name} registered!")
 
     elif action == "Create Election":
-        title = st.text_input("Election Title", key="admin_election_title")
-        desc = st.text_input("Description", key="admin_election_desc")
-        start_date = st.date_input("Start Date", datetime.today(), key="admin_start_date")
-        end_date = st.date_input("End Date", datetime.today(), key="admin_end_date")
-        if st.button("Create Election", key="admin_create_election"):
+        title = st.text_input("Election Title")
+        desc = st.text_input("Description")
+        start_date = st.date_input("Start Date", datetime.today())
+        end_date = st.date_input("End Date", datetime.today())
+        if st.button("Create Election"):
             AdminService.create_election(title, desc, start_date.isoformat(), end_date.isoformat())
             st.success(f"Election '{title}' created!")
 
@@ -114,12 +127,12 @@ elif role == "Admin":
         elections = ElectionService.list_elections()
         if elections:
             election_options = {f"{e['title']} (ID:{e['election_id']})": e['election_id'] for e in elections}
-            selected = st.selectbox("Select Election", list(election_options.keys()), key="admin_election_select")
+            selected = st.selectbox("Select Election", list(election_options.keys()), key="admin_add_candidate")
             election_id = election_options[selected]
 
-            name = st.text_input("Candidate Name", key="admin_candidate_name")
-            party = st.text_input("Party Name (leave blank for Independent)", key="admin_candidate_party")
-            if st.button("Add Candidate", key="admin_add_candidate"):
+            name = st.text_input("Candidate Name")
+            party = st.text_input("Party Name (leave blank for Independent)")
+            if st.button("Add Candidate"):
                 party = party.strip() or "Independent"
                 CandidateService.add_candidate(election_id, name, party)
                 st.success(f"Candidate '{name}' added to election {election_id}")
@@ -130,16 +143,15 @@ elif role == "Admin":
         elections = ElectionService.list_elections()
         if elections:
             election_options = {f"{e['title']} (ID:{e['election_id']})": e['election_id'] for e in elections}
-            selected = st.selectbox("Select Election", list(election_options.keys()), key="admin_report_select")
+            selected = st.selectbox("Select Election", list(election_options.keys()), key="admin_results")
             election_id = election_options[selected]
-
             st.subheader("Election Results")
             results = ReportService.view_election_results(election_id)
             if results:
                 for r in results:
-                    st.write(f"{r['candidate_name']} ({r.get('party','Independent')}) - {r['votes']} votes")
+                    st.write(f"{r['candidate_name']} - {r['votes']} votes")
             else:
-                st.info("No votes have been cast yet.")
+                st.info("No votes cast yet.")
         else:
             st.info("No elections available.")
 
@@ -147,10 +159,9 @@ elif role == "Admin":
         elections = ElectionService.list_elections()
         if elections:
             election_options = {f"{e['title']} (ID:{e['election_id']})": e['election_id'] for e in elections}
-            selected = st.selectbox("Select Election", list(election_options.keys()), key="admin_end_select")
+            selected = st.selectbox("Select Election", list(election_options.keys()), key="force_end")
             election_id = election_options[selected]
-
-            if st.button("End Election", key="admin_force_end"):
+            if st.button("End Election"):
                 AdminService.force_end_election(election_id)
                 st.success(f"Election {election_id} ended!")
         else:
