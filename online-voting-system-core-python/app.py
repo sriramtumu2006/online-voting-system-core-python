@@ -1,4 +1,3 @@
-# app.py
 import streamlit as st
 from datetime import datetime
 from src.services.voter_service import VoterService
@@ -8,17 +7,11 @@ from src.services.vote_service import VoteService
 from src.services.candidate_service import CandidateService
 from src.services.report_service import ReportService
 
-st.title("🌐 Online Voting System")
-
-# Sidebar: Choose role
+st.title("Online Voting System")
 role = st.sidebar.selectbox("Select Role", ["Voter", "Admin"])
-
-# ----------------- VOTER -----------------
 if role == "Voter":
     st.header("Voter Portal")
-
     action = st.selectbox("Choose Action", ["Login", "Back"])
-
     if action == "Login":
         email = st.text_input("Email")
         password = st.text_input("Password", type="password")
@@ -26,10 +19,7 @@ if role == "Voter":
             voter = VoterService.login(email, password)
             if voter:
                 st.success(f"Welcome {voter['name']}!")
-                
-                # Voter actions
                 voter_action = st.selectbox("Choose", ["List Elections", "Cast Vote", "View Results"])
-                
                 if voter_action == "List Elections":
                     elections = ElectionService.list_elections()
                     if elections:
@@ -65,8 +55,6 @@ if role == "Voter":
 
             else:
                 st.error("Invalid credentials.")
-
-# ----------------- ADMIN -----------------
 elif role == "Admin":
     st.header("Admin Portal")
     action = st.selectbox("Choose Action", ["Register Voter", "Create Election", "Add Candidate", "View Reports", "Force End Election"])
@@ -116,3 +104,4 @@ elif role == "Admin":
         if st.button("End Election"):
             AdminService.force_end_election(election_id)
             st.success(f"Election {election_id} ended!")
+
