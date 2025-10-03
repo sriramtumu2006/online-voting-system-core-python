@@ -29,21 +29,26 @@ if role == "Voter":
                     else:
                         st.info("No elections available.")
 
-                elif voter_action == "Cast Vote":
+               elif voter_action == "Cast Vote":
                     elections = ElectionService.list_elections()
-                    election_options = {f"{e['title']} (ID:{e['election_id']})": e['election_id'] for e in elections}
-                    selected = st.selectbox("Select Election", list(election_options.keys()))
-                    election_id = election_options[selected]
-                    candidates = CandidateService.list_candidates(election_id)
-                    if candidates:
-                        candidate_options = {f"{c['name']} ({c.get('party','Independent')})": c['candidate_id'] for c in candidates}
-                        selected_candidate = st.selectbox("Select Candidate", list(candidate_options.keys()))
-                        candidate_id = candidate_options[selected_candidate]
-                        if st.button("Vote"):
-                            VoteService.cast_vote(voter['voter_id'], election_id, candidate_id)
-                            st.success("Vote cast successfully!")
+                    if not elections:
+                        st.warning("⚠️ No elections available to vote.")
                     else:
-                        st.warning("No candidates available for this election.")
+                        election_options = {f"{e['title']} (ID:{e['election_id']})": e['election_id'] for e in elections}
+                        selected = st.selectbox("Select Election", list(election_options.keys()))
+                        election_id = election_options[selected]
+                        candidates = CandidateService.list_candidates(election_id)
+                        if not candidates:
+                            st.warning("⚠️ No candidates available for this election.")
+                        else:
+                            candidate_options = {f"{c['name']} ({c.get('party','Independent')})": c['candidate_id'] for c in candidates }
+                            selected_candidate = st.selectbox("Select Candidate", list(candidate_options.keys()))
+                            candidate_id = candidate_options[selected_candidate]
+
+                            if st.button("Vote"):
+                                VoteService.cast_vote(voter['voter_id'], election_id, candidate_id)
+                                st.success("✅ Vote cast successfully!")
+
 
                 elif voter_action == "View Results":
                     elections = ElectionService.list_elections()
@@ -104,4 +109,5 @@ elif role == "Admin":
         if st.button("End Election"):
             AdminService.force_end_election(election_id)
             st.success(f"Election {election_id} ended!")
+
 
