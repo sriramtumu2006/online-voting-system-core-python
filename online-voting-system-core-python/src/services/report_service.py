@@ -1,61 +1,37 @@
 from datetime import datetime
 from src.dao.election_dao import ElectionDAO
-from src.dao.candidate_dao import CandidateDAO
 
 class ReportService:
     @staticmethod
     def view_election_results(election_id):
-        """
-        Returns a list of dicts for admin view.
-        """
         election = ElectionDAO.get_election(election_id)
         if not election:
-            return {"error": "Election not found."}
-
-        results = ElectionDAO.get_results(election_id)
-        total_voters = ElectionDAO.get_total_voters()
-        voters_participated = ElectionDAO.get_voters_participated(election_id)
-
-        # enrich with candidate party info
-        candidates = CandidateDAO.get_candidates_by_election(election_id)
-        candidate_map = {c["candidate_id"]: c for c in candidates}
-
-        for r in results:
-            cand = candidate_map.get(r["candidate_id"])
-            if cand:
-                r["party"] = cand.get("party", "Independent")
-
-        return {
-            "election": election,
-            "results": results,
-            "total_voters": total_voters,
-            "voters_participated": voters_participated
-        }
-
-    @staticmethod
-    def view_results_for_voter(election_id):
-        """
-        Returns results for voter only if election has ended.
-        """
-        if not ElectionDAO.has_ended(election_id):
-            return {"error": "Results will be available only after the election ends."}
-
+            print("Election not found.")
+            return
+        start = datetime.fromisoformat(election['start_date']).date()
+        end = datetime.fromisoformat(election['end_date']).date()
+        print(f"Election: {election['title']} ({start} to {end})")
         results = ElectionDAO.get_results(election_id)
         if not results:
-            return {"error": "No votes have been cast in this election."}
+            print("No votes cast yet.")
+            return
+        for res in results:
+            print(f"Candidate: {res['candidate_name']} | Votes: {res['votes']}")
+        total_voters = ElectionDAO.get_total_voters()
+        voters_participated = ElectionDAO.get_voters_participated(election_id)
+        print(f"Total Voters: {total_voters}")
+        print(f"Voters Participated: {voters_participated}")
 
-        # enrich with candidate party info
-        candidates = CandidateDAO.get_candidates_by_election(election_id)
-        candidate_map = {c["candidate_id"]: c for c in candidates}
-
+    def view_results(election_id):
+        if not ElectionDAO.has_ended(election_id):
+            print("Results will be available only after the election ends.")
+            return
+        results = ElectionDAO.get_results(election_id)
+        if not results:
+            print("No votes have been cast in this election.")
+            return
+        print(f"Results for Election ID {election_id}:")
         for r in results:
-            cand = candidate_map.get(r["candidate_id"])
-            if cand:
-                r["party"] = cand.get("party", "Independent")
-
-        # find winner
+            print(f"{r['candidate_name']} - {r['votes']} votes")
         winner = max(results, key=lambda x: x["votes"])
-        return {
-            "results": results,
-            "winner": winner
-        }
+        print(f"\nWinner: {winner['candidate_name']} with {winner['votes']} votes")
