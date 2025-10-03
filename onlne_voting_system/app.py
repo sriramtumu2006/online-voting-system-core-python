@@ -30,13 +30,13 @@ if role == "Voter":
         password = st.text_input("Password", type="password")
         if st.button("Login"):
             voter = VoterService.login(email, password)
-            if voter:
+            if voter and isinstance(voter, dict) and "name" in voter:
                 st.session_state["voter"] = voter
                 st.session_state["voter_action"] = "List Elections"
                 st.success(f"Welcome {voter['name']}!")
                 st.experimental_rerun()
             else:
-                st.error("Invalid credentials.")
+                st.error("Invalid credentials or login failed.")
 
     # ---------- VOTER ACTIONS ----------
     else:
@@ -46,9 +46,7 @@ if role == "Voter":
         voter_action = st.selectbox(
             "Choose Action",
             ["List Elections", "Cast Vote", "View Results", "Logout"],
-            index=["List Elections", "Cast Vote", "View Results", "Logout"].index(
-                st.session_state["voter_action"]
-            ),
+            index=["List Elections", "Cast Vote", "View Results", "Logout"].index(st.session_state["voter_action"])
         )
         st.session_state["voter_action"] = voter_action
 
@@ -108,16 +106,12 @@ if role == "Voter":
                 st.session_state["voter"] = None
                 st.session_state["voter_action"] = "List Elections"
                 st.success("Logged out successfully!")
-                st.experimental_set_query_params()
                 st.experimental_rerun()
 
 # ----------------- ADMIN -----------------
 elif role == "Admin":
     st.header("Admin Portal")
-    action = st.selectbox(
-        "Choose Action",
-        ["Register Voter", "Create Election", "Add Candidate", "View Reports", "Force End Election"]
-    )
+    action = st.selectbox("Choose Action", ["Register Voter", "Create Election", "Add Candidate", "View Reports", "Force End Election"])
 
     if action == "Register Voter":
         name = st.text_input("Voter Name")
