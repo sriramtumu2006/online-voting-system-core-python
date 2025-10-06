@@ -71,7 +71,7 @@ if role == "Voter":
                 candidates = CandidateService.list_candidates(election_id)
                 election = next((e for e in elections if e['election_id'] == election_id), None)
                 if election and election.get("status", "").lower() == "ended":
-                    st.warning("⚠️ This election has already ended. You cannot vote now.")
+                    st.warning("This election has already ended. You cannot vote now.")
                 else:
                     if candidates:
                         candidate_options = {f"{c['name']} ({c.get('party','Independent')})": c['candidate_id'] for c in candidates}
@@ -80,7 +80,7 @@ if role == "Voter":
 
                         if st.button("Vote"):
                             VoteService.cast_vote(voter['voter_id'], election_id, candidate_id)
-                            st.success("✅ Vote cast successfully!")
+                            st.success("Vote cast successfully!")
                         else:
                             st.warning("No candidates available for this election.")
                     else:
@@ -180,6 +180,7 @@ elif role == "Admin":
                 st.success(f"Election {election_id} ended!")
         else:
             st.info("No elections available to end.")
+
 
 
 
