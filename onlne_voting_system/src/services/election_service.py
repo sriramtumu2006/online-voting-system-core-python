@@ -14,7 +14,6 @@ class ElectionService:
 
  @staticmethod
     def auto_end_elections(elections):
-        """Automatically end elections whose end_date has passed."""
         today = date.today()
         for election in elections:
             if election.get("status", "").lower() != "ended":
@@ -24,3 +23,4 @@ class ElectionService:
                         election_dao.update_status(election["election_id"], "Ended")
                 except Exception as e:
                     print(f"Error auto-ending election {election['election_id']}: {e}")
+
