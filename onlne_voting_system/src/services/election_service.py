@@ -12,7 +12,7 @@ class ElectionService:
     def get_election(election_id):
         return ElectionDAO.get_election(election_id)
 
- @staticmethod
+    @staticmethod
     def auto_end_elections(elections):
         today = date.today()
         for election in elections:
@@ -23,4 +23,5 @@ class ElectionService:
                         election_dao.update_status(election["election_id"], "Ended")
                 except Exception as e:
                     print(f"Error auto-ending election {election['election_id']}: {e}")
+
 
