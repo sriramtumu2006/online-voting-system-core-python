@@ -1,5 +1,6 @@
 # src/services/election_service.py
 from src.dao.election_dao import ElectionDAO
+from datetime import date, datetime
 
 class ElectionService:
     @staticmethod
@@ -23,6 +24,7 @@ class ElectionService:
                         election_dao.update_status(election["election_id"], "Ended")
                 except Exception as e:
                     print(f"Error auto-ending election {election['election_id']}: {e}")
+
 
 
 
