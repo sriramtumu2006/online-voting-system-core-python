@@ -86,3 +86,8 @@ class ElectionDAO:
         now = datetime.now().isoformat()
         supabase.table("election").update({"end_date": now, "status": "ended"}).eq("election_id", election_id).execute()
         print(f"Election ID {election_id} has been forcefully ended.")
+        
+    @staticmethod
+    def update_status(election_id, status):
+    supabase = get_supabase()
+    supabase.table("elections").update({"status": status}).eq("election_id", election_id).execute()
