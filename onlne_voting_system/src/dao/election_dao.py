@@ -89,5 +89,6 @@ class ElectionDAO:
         
     @staticmethod
     def update_status(election_id, status):
-    supabase = get_supabase()
-    supabase.table("elections").update({"status": status}).eq("election_id", election_id).execute()
+        supabase = get_supabase()
+        supabase.table("elections").update({"status": status}).eq("election_id", election_id).execute()
+
