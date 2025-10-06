@@ -78,16 +78,13 @@ if role == "Voter":
                         selected_candidate = st.selectbox("Select Candidate", list(candidate_options.keys()))
                         candidate_id = candidate_options[selected_candidate]
 
-                    if st.button("Vote"):
-                        VoteService.cast_vote(voter['voter_id'], election_id, candidate_id)
-                        st.success("✅ Vote cast successfully!")
+                        if st.button("Vote"):
+                            VoteService.cast_vote(voter['voter_id'], election_id, candidate_id)
+                            st.success("✅ Vote cast successfully!")
+                        else:
+                            st.warning("No candidates available for this election.")
                     else:
-                        st.warning("No candidates available for this election.")
-
-                else:
                     st.warning("No candidates available for this election.")
-            else:
-                st.info("No elections available.")
 
 
         elif voter_action == "View Results":
@@ -183,5 +180,6 @@ elif role == "Admin":
                 st.success(f"Election {election_id} ended!")
         else:
             st.info("No elections available to end.")
+
 
 
