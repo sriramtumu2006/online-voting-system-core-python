@@ -4,7 +4,7 @@ from src.dao.election_dao import ElectionDAO
 class ElectionService:
     @staticmethod
     def list_elections():
-        elections = election_dao.list_elections()
+        elections = ElectionDAO.list_elections()
         ElectionService.auto_end_elections(elections)
         return elections
 
@@ -23,5 +23,6 @@ class ElectionService:
                         election_dao.update_status(election["election_id"], "Ended")
                 except Exception as e:
                     print(f"Error auto-ending election {election['election_id']}: {e}")
+
 
 
